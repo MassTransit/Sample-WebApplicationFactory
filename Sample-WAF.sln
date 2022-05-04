@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C13F2FD6-0C59-4125-A84A-8D8A1CF36A4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Api", "src\Sample.Api\Sample.Api.csproj", "{1FD972CF-A966-4076-B546-45B2E3D48FE4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0D17DDB8-4E2D-44A2-8291-6F0A85243B4B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Tests", "tests\Sample.Tests\Sample.Tests.csproj", "{2FD6E66B-1836-4BEF-A2E9-EC1AB0060B9B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.Abstractions", "..\..\Code\MassTransit\src\MassTransit.Abstractions\MassTransit.Abstractions.csproj", "{EDA1A985-38CB-4A0A-8337-839EBFC30BC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit", "..\..\Code\MassTransit\src\MassTransit\MassTransit.csproj", "{8F58CB6F-D00F-426B-A7E9-85E77AFB8777}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.RabbitMqTransport", "..\..\Code\MassTransit\src\Transports\MassTransit.RabbitMqTransport\MassTransit.RabbitMqTransport.csproj", "{F54EC170-8FD3-445A-96FA-05CBFFA835C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransit.RedisIntegration", "..\..\Code\MassTransit\src\Persistence\MassTransit.RedisIntegration\MassTransit.RedisIntegration.csproj", "{87F3759A-370E-4251-A1FD-7EEB245AA9B6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1FD972CF-A966-4076-B546-45B2E3D48FE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FD972CF-A966-4076-B546-45B2E3D48FE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FD972CF-A966-4076-B546-45B2E3D48FE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FD972CF-A966-4076-B546-45B2E3D48FE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FD6E66B-1836-4BEF-A2E9-EC1AB0060B9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FD6E66B-1836-4BEF-A2E9-EC1AB0060B9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FD6E66B-1836-4BEF-A2E9-EC1AB0060B9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FD6E66B-1836-4BEF-A2E9-EC1AB0060B9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDA1A985-38CB-4A0A-8337-839EBFC30BC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDA1A985-38CB-4A0A-8337-839EBFC30BC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDA1A985-38CB-4A0A-8337-839EBFC30BC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDA1A985-38CB-4A0A-8337-839EBFC30BC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F58CB6F-D00F-426B-A7E9-85E77AFB8777}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F58CB6F-D00F-426B-A7E9-85E77AFB8777}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F58CB6F-D00F-426B-A7E9-85E77AFB8777}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F58CB6F-D00F-426B-A7E9-85E77AFB8777}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F54EC170-8FD3-445A-96FA-05CBFFA835C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F54EC170-8FD3-445A-96FA-05CBFFA835C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F54EC170-8FD3-445A-96FA-05CBFFA835C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F54EC170-8FD3-445A-96FA-05CBFFA835C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87F3759A-370E-4251-A1FD-7EEB245AA9B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87F3759A-370E-4251-A1FD-7EEB245AA9B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87F3759A-370E-4251-A1FD-7EEB245AA9B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87F3759A-370E-4251-A1FD-7EEB245AA9B6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1FD972CF-A966-4076-B546-45B2E3D48FE4} = {C13F2FD6-0C59-4125-A84A-8D8A1CF36A4E}
+		{2FD6E66B-1836-4BEF-A2E9-EC1AB0060B9B} = {0D17DDB8-4E2D-44A2-8291-6F0A85243B4B}
+	EndGlobalSection
+EndGlobal
