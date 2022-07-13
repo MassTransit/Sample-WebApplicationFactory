@@ -5,8 +5,8 @@ using MassTransit.Testing;
 using Microsoft.AspNetCore.Mvc.Testing;
 using NUnit.Framework;
 using Sample.Api;
-using Sample.Api.Contracts;
 using Sample.Api.StateMachines;
+using Sample.Contracts;
 
 namespace Sample.Tests;
 
@@ -45,7 +45,7 @@ public class Submitting_an_order
         Assert.That(sagaExists.HasValue);
         Assert.That(sagaExists!.Value, Is.EqualTo(orderId));
 
-        var getOrderStatusUrl = $"/Order?id={orderId:D}";
+        var getOrderStatusUrl = $"/Order/{orderId:D}";
 
         var orderStatusResponse = await client.GetAsync(getOrderStatusUrl);
         orderStatusResponse.EnsureSuccessStatusCode();
@@ -55,5 +55,56 @@ public class Submitting_an_order
         Assert.That(orderStatus, Is.Not.Null);
         Assert.That(orderStatus!.OrderId, Is.EqualTo(orderId));
         Assert.That(orderStatus.Status, Is.EqualTo(nameof(OrderStateMachine.Submitted)));
+    }
+
+    [Test]
+    public async Task Should_have_the_validated_status()
+    {
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            {
+                services.AddMassTransitTestHarness(x =>
+                {
+                    x.AddHandler<ValidateOrder>(context => context.RespondAsync(new OrderValidated(context.Message.OrderId)));
+                });
+            }));
+
+        var testHarness = application.Services.GetTestHarness();
+
+        using var client = application.CreateClient();
+
+        var sagaTestHarness = testHarness.GetSagaStateMachineHarness<OrderStateMachine, OrderState>();
+
+        const string submitOrderUrl = "/Order";
+
+        var orderId = NewId.NextGuid();
+
+        var submitOrderResponse = await client.PostAsync(submitOrderUrl, JsonContent.Create(new Order
+        {
+            OrderId = orderId
+        }));
+
+        submitOrderResponse.EnsureSuccessStatusCode();
+        var orderStatus = await submitOrderResponse.Content.ReadFromJsonAsync<OrderStatus>();
+
+        Assert.That(orderStatus, Is.Not.Null);
+        Assert.That(orderStatus!.OrderId, Is.EqualTo(orderId));
+
+        Assert.That(await sagaTestHarness.Consumed.Any<SubmitOrder>(x => x.Context.Message.OrderId == orderId), Is.True);
+
+        var sagaExists = await sagaTestHarness.Exists(orderId, x => x.Accepted);
+        Assert.That(sagaExists.HasValue);
+        Assert.That(sagaExists!.Value, Is.EqualTo(orderId));
+
+        var getOrderStatusUrl = $"/Order/{orderId:D}";
+
+        var orderStatusResponse = await client.GetAsync(getOrderStatusUrl);
+        orderStatusResponse.EnsureSuccessStatusCode();
+
+        orderStatus = await orderStatusResponse.Content.ReadFromJsonAsync<OrderStatus>();
+
+        Assert.That(orderStatus, Is.Not.Null);
+        Assert.That(orderStatus!.OrderId, Is.EqualTo(orderId));
+        Assert.That(orderStatus.Status, Is.EqualTo(nameof(OrderStateMachine.Accepted)));
     }
 }

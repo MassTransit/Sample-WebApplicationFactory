@@ -1,16 +1,17 @@
 using MassTransit;
+using Microsoft.AspNetCore.Mvc;
+using Sample.Api;
 using Sample.Api.Consumers;
 using Sample.Api.StateMachines;
+using Sample.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers();
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumersFromNamespaceContaining<NotifyCustomerOrderSubmittedConsumer>();
-    x.AddSagaStateMachine<OrderStateMachine, OrderState>()
+    
+    x.AddSagaStateMachine<OrderStateMachine, OrderState, OrderStateDefinition>()
         .RedisRepository();
 
     x.UsingRabbitMq((context, cfg) =>
@@ -21,24 +22,35 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.MapPost("/Order", async ([FromBody] Order order, IRequestClient<SubmitOrder> client) =>
+{
+    var response = await client.GetResponse<OrderSubmissionAccepted>(new SubmitOrder(order.OrderId));
 
-app.UseAuthorization();
+    return Results.Ok(new
+    {
+        response.Message.OrderId
+    });
+});
 
-app.MapControllers();
+app.MapGet("/Order/{id:guid}", async (Guid id, IRequestClient<GetOrderStatus> client) =>
+{
+    var response = await client.GetResponse<OrderStatus, OrderNotFound>(new GetOrderStatus(id));
+
+    return response.Is(out Response<OrderStatus>? order)
+        ? Results.Ok(order!.Message)
+        : Results.NotFound();
+});
 
 app.Run();
 

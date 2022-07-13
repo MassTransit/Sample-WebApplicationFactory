@@ -1,5 +1,5 @@
 using MassTransit;
-using Sample.Api.Contracts;
+using Sample.Contracts;
 
 namespace Sample.Api.StateMachines;
 
@@ -9,37 +9,45 @@ public class OrderStateMachine :
 {
     public OrderStateMachine()
     {
+        InstanceState(x => x.CurrentState);
+
         Event(() => SubmitOrder, x => x.CorrelateById(context => context.Message.OrderId));
         Event(() => OrderStatusRequested, x =>
         {
             x.CorrelateById(context => context.Message.OrderId);
-            x.OnMissingInstance(x => x.ExecuteAsync(context => context.RespondAsync<OrderNotFound>(new { context.Message.OrderId })));
+            x.OnMissingInstance(m => m.ExecuteAsync(context => context.RespondAsync(new OrderNotFound(context.Message.OrderId))));
         });
 
-        InstanceState(x => x.CurrentState);
+        Request(() => ValidateRequest, x => x.Timeout = TimeSpan.Zero);
 
         Initially(
             When(SubmitOrder)
                 .TransitionTo(Submitted)
-                .RespondAsync(x => x.Init<OrderSubmissionAccepted>(new
-                {
-                    OrderId = x.Saga.CorrelationId
-                }))
+                .Publish(x => new OrderSubmitted(x.Saga.CorrelationId))
+                .Respond(x => new OrderSubmissionAccepted(x.Saga.CorrelationId))
+                .Request(ValidateRequest, x => new ValidateOrder(x.Saga.CorrelationId))
         );
+
+        During(Submitted,
+            When(ValidateRequest!.Completed)
+                .Publish(x => new OrderAccepted(x.Saga.CorrelationId))
+                .TransitionTo(Accepted),
+            When(ValidateRequest.Faulted)
+                .Publish(x => new OrderRejected(x.Saga.CorrelationId))
+                .TransitionTo(Rejected));
 
         DuringAny(
             When(OrderStatusRequested)
-                .RespondAsync(x => x.Init<OrderStatus>(new
-                {
-                    OrderId = x.Saga.CorrelationId,
-                    Status = x.StateMachine.GetState(x)
-                }))
+                .RespondAsync(async x => new OrderStatus(x.Saga.CorrelationId, (await x.StateMachine.GetState(x)).Name))
         );
     }
 
     //
     // ReSharper disable UnassignedGetOnlyAutoProperty
     public State Submitted { get; }
+    public State Accepted { get; }
+    public State Rejected { get; }
     public Event<SubmitOrder> SubmitOrder { get; }
     public Event<GetOrderStatus> OrderStatusRequested { get; }
+    public Request<OrderState, ValidateOrder, OrderValidated> ValidateRequest { get; }
 }
