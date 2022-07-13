@@ -7,10 +7,13 @@ using Sample.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumersFromNamespaceContaining<NotifyCustomerOrderSubmittedConsumer>();
-    
+
     x.AddSagaStateMachine<OrderStateMachine, OrderState, OrderStateDefinition>()
         .RedisRepository();
 
@@ -22,16 +25,10 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.MapPost("/Order", async ([FromBody] Order order, IRequestClient<SubmitOrder> client) =>
 {

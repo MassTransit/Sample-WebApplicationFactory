@@ -22,7 +22,6 @@ public class Submitting_an_order
 
         using var client = application.CreateClient();
 
-        var sagaTestHarness = testHarness.GetSagaStateMachineHarness<OrderStateMachine, OrderState>();
 
         const string submitOrderUrl = "/Order";
 
@@ -38,6 +37,8 @@ public class Submitting_an_order
 
         Assert.That(orderStatus, Is.Not.Null);
         Assert.That(orderStatus!.OrderId, Is.EqualTo(orderId));
+
+        var sagaTestHarness = testHarness.GetSagaStateMachineHarness<OrderStateMachine, OrderState>();
 
         Assert.That(await sagaTestHarness.Consumed.Any<SubmitOrder>(x => x.Context.Message.OrderId == orderId), Is.True);
 
@@ -73,8 +74,6 @@ public class Submitting_an_order
 
         using var client = application.CreateClient();
 
-        var sagaTestHarness = testHarness.GetSagaStateMachineHarness<OrderStateMachine, OrderState>();
-
         const string submitOrderUrl = "/Order";
 
         var orderId = NewId.NextGuid();
@@ -89,6 +88,8 @@ public class Submitting_an_order
 
         Assert.That(orderStatus, Is.Not.Null);
         Assert.That(orderStatus!.OrderId, Is.EqualTo(orderId));
+
+        var sagaTestHarness = testHarness.GetSagaStateMachineHarness<OrderStateMachine, OrderState>();
 
         Assert.That(await sagaTestHarness.Consumed.Any<SubmitOrder>(x => x.Context.Message.OrderId == orderId), Is.True);
 
