@@ -3,21 +3,28 @@ using System.Threading.Tasks;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
 using Sample.Api.StateMachines;
 using Sample.Contracts;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace Sample.Tests;
+namespace Sample.XUnitTests;
 
-[TestFixture]
 public class When_request_sent_from_state_machine
 {
-    [Test]
+    public When_request_sent_from_state_machine(ITestOutputHelper outputHelper)
+    {
+        OutputHelper = new TestOutputHelperTextWriterAdapter(outputHelper);
+    }
+
+    TestOutputHelperTextWriterAdapter OutputHelper { get; }
+
+    [Fact]
     public async Task Should_use_correlation_id_for_request_id()
     {
         await using var provider = new ServiceCollection()
-            .AddTelemetryListener()
-            .AddMassTransitTestHarness(x =>
+            .AddTelemetryListener(OutputHelper)
+            .AddMassTransitTestHarness(OutputHelper, x =>
             {
                 x.AddHandler<ValidateOrder>(context => context.RespondAsync(new OrderValidated(context.Message.OrderId)));
 
@@ -39,9 +46,9 @@ public class When_request_sent_from_state_machine
 
             var sagaHarness = harness.GetSagaStateMachineHarness<OrderStateMachine, OrderState>();
 
-            Assert.That(await sagaHarness.Consumed.Any<OrderValidated>(), Is.True);
+            Assert.True(await sagaHarness.Consumed.Any<OrderValidated>());
 
-            Assert.That(await harness.Published.Any<OrderAccepted>(), Is.True);
+            Assert.True(await harness.Published.Any<OrderAccepted>());
         }
         finally
         {

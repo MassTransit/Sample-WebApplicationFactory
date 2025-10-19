@@ -6,9 +6,10 @@ namespace Sample.Api.StateMachines;
 public class OrderStateDefinition :
     SagaDefinition<OrderState>
 {
-    protected override void ConfigureSaga(IReceiveEndpointConfigurator endpointConfigurator, ISagaConfigurator<OrderState> sagaConfigurator)
+    protected override void ConfigureSaga(IReceiveEndpointConfigurator endpointConfigurator, ISagaConfigurator<OrderState> sagaConfigurator,
+        IRegistrationContext context)
     {
         endpointConfigurator.UseMessageRetry(r => r.Intervals(100, 200, 500, 1000));
-        endpointConfigurator.UseInMemoryOutbox();
+        endpointConfigurator.UseInMemoryOutbox(context);
     }
 }

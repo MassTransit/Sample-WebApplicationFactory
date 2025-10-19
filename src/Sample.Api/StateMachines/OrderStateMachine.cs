@@ -3,7 +3,6 @@ using Sample.Contracts;
 
 namespace Sample.Api.StateMachines;
 
-#pragma warning disable CS8618
 public class OrderStateMachine :
     MassTransitStateMachine<OrderState>
 {
@@ -15,7 +14,11 @@ public class OrderStateMachine :
         Event(() => OrderStatusRequested, x =>
         {
             x.CorrelateById(context => context.Message.OrderId);
-            x.OnMissingInstance(m => m.ExecuteAsync(context => context.RespondAsync(new OrderNotFound(context.Message.OrderId))));
+            x.OnMissingInstance(m => m.ExecuteAsync(async context =>
+            {
+                if (context.IsResponseAccepted<OrderNotFound>())
+                    await context.RespondAsync(new OrderNotFound(context.Message.OrderId));
+            }));
         });
 
         Request(() => ValidateRequest, x => x.Timeout = TimeSpan.Zero);
@@ -42,12 +45,10 @@ public class OrderStateMachine :
         );
     }
 
-    //
-    // ReSharper disable UnassignedGetOnlyAutoProperty
-    public State Submitted { get; }
-    public State Accepted { get; }
-    public State Rejected { get; }
-    public Event<SubmitOrder> SubmitOrder { get; }
-    public Event<GetOrderStatus> OrderStatusRequested { get; }
-    public Request<OrderState, ValidateOrder, OrderValidated> ValidateRequest { get; }
+    public State Submitted { get; } = null!;
+    public State Accepted { get; } = null!;
+    public State Rejected { get; } = null!;
+    public Event<SubmitOrder> SubmitOrder { get; } = null!;
+    public Event<GetOrderStatus> OrderStatusRequested { get; } = null!;
+    public Request<OrderState, ValidateOrder, OrderValidated> ValidateRequest { get; } = null!;
 }

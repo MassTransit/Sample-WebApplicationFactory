@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-Sample.Worker-2A9ACD61-4466-42F7-BA33-7D0E91AA9340</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit.RabbitMQ" Version="8.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>

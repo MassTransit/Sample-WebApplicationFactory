@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
+using NSwag;
 using Sample.Api;
 using Sample.Api.Consumers;
 using Sample.Api.StateMachines;
@@ -8,7 +9,15 @@ using Sample.Contracts;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApiDocument(cfg => cfg.PostProcess = x =>
+{
+    x.Info.Title = "MassTransit Testing Sample";
+    x.Info.Contact = new OpenApiContact
+    {
+        Name = "MassTransit Testing Sample",
+        Email = "support@masstransit.io"
+    };
+});
 
 builder.Services.AddMassTransit(x =>
 {
@@ -19,6 +28,8 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
+        cfg.UseDelayedMessageScheduler();
+
         cfg.Host("localhost");
 
         cfg.ConfigureEndpoints(context);
@@ -27,8 +38,8 @@ builder.Services.AddMassTransit(x =>
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+app.UseOpenApi();
+app.UseSwaggerUi();
 
 app.MapPost("/Order", async ([FromBody] Order order, IRequestClient<SubmitOrder> client) =>
 {

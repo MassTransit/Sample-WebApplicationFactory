@@ -4,23 +4,31 @@ using System.Threading.Tasks;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.AspNetCore.Mvc.Testing;
-using NUnit.Framework;
 using Sample.Api;
 using Sample.Api.StateMachines;
 using Sample.Contracts;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace Sample.Tests;
+namespace Sample.XUnitTests;
 
 public class Submitting_an_order
 {
-    [Test]
+    public Submitting_an_order(ITestOutputHelper outputHelper)
+    {
+        OutputHelper = new TestOutputHelperTextWriterAdapter(outputHelper);
+    }
+
+    TestOutputHelperTextWriterAdapter OutputHelper { get; }
+
+    [Fact]
     public async Task Should_have_the_submitted_status()
     {
         await using var application = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             {
-                services.AddTelemetryListener();
-                services.AddMassTransitTestHarness();
+                services.AddTelemetryListener(OutputHelper);
+                services.AddMassTransitTestHarness(OutputHelper);
             }));
 
         var testHarness = application.Services.GetTestHarness();
@@ -39,16 +47,16 @@ public class Submitting_an_order
         submitOrderResponse.EnsureSuccessStatusCode();
         var orderStatus = await submitOrderResponse.Content.ReadFromJsonAsync<OrderStatus>();
 
-        Assert.That(orderStatus, Is.Not.Null);
-        Assert.That(orderStatus!.OrderId, Is.EqualTo(orderId));
+        Assert.NotNull(orderStatus);
+        Assert.Equal(orderStatus.OrderId, orderId);
 
         var sagaTestHarness = testHarness.GetSagaStateMachineHarness<OrderStateMachine, OrderState>();
 
-        Assert.That(await sagaTestHarness.Consumed.Any<SubmitOrder>(x => x.Context.Message.OrderId == orderId), Is.True);
+        Assert.True(await sagaTestHarness.Consumed.Any<SubmitOrder>(x => x.Context.Message.OrderId == orderId));
 
         var sagaExists = await sagaTestHarness.Exists(orderId, x => x.Submitted);
-        Assert.That(sagaExists.HasValue);
-        Assert.That(sagaExists!.Value, Is.EqualTo(orderId));
+        Assert.True(sagaExists.HasValue);
+        Assert.Equal(orderId, sagaExists.Value);
 
         var getOrderStatusUrl = $"/Order/{orderId:D}";
 
@@ -57,22 +65,20 @@ public class Submitting_an_order
 
         orderStatus = await orderStatusResponse.Content.ReadFromJsonAsync<OrderStatus>();
 
-        Assert.That(orderStatus, Is.Not.Null);
-        Assert.That(orderStatus!.OrderId, Is.EqualTo(orderId));
-        Assert.That(orderStatus.Status, Is.EqualTo(nameof(OrderStateMachine.Submitted)));
+        Assert.NotNull(orderStatus);
+        Assert.Equal(orderId, orderStatus.OrderId);
+        Assert.Equal(nameof(OrderStateMachine.Submitted), orderStatus.Status);
     }
 
-    [Test]
+    [Fact]
     public async Task Should_have_the_validated_status()
     {
         await using var application = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             {
-                services.AddTelemetryListener();
-                services.AddMassTransitTestHarness(x =>
-                {
-                    x.AddHandler<ValidateOrder>(context => context.RespondAsync(new OrderValidated(context.Message.OrderId)));
-                });
+                services.AddTelemetryListener(OutputHelper);
+                services.AddMassTransitTestHarness(OutputHelper,
+                    x => { x.AddHandler<ValidateOrder>(context => context.RespondAsync(new OrderValidated(context.Message.OrderId))); });
             }));
 
         var testHarness = application.Services.GetTestHarness();
@@ -91,16 +97,16 @@ public class Submitting_an_order
         submitOrderResponse.EnsureSuccessStatusCode();
         var orderStatus = await submitOrderResponse.Content.ReadFromJsonAsync<OrderStatus>();
 
-        Assert.That(orderStatus, Is.Not.Null);
-        Assert.That(orderStatus!.OrderId, Is.EqualTo(orderId));
+        Assert.NotNull(orderStatus);
+        Assert.Equal(orderId, orderStatus.OrderId);
 
         var sagaTestHarness = testHarness.GetSagaStateMachineHarness<OrderStateMachine, OrderState>();
 
-        Assert.That(await sagaTestHarness.Consumed.Any<SubmitOrder>(x => x.Context.Message.OrderId == orderId), Is.True);
+        Assert.True(await sagaTestHarness.Consumed.Any<SubmitOrder>(x => x.Context.Message.OrderId == orderId));
 
         var sagaExists = await sagaTestHarness.Exists(orderId, x => x.Accepted);
-        Assert.That(sagaExists.HasValue);
-        Assert.That(sagaExists!.Value, Is.EqualTo(orderId));
+        Assert.True(sagaExists.HasValue);
+        Assert.Equal(orderId, sagaExists.Value);
 
         var getOrderStatusUrl = $"/Order/{orderId:D}";
 
@@ -109,12 +115,12 @@ public class Submitting_an_order
 
         orderStatus = await orderStatusResponse.Content.ReadFromJsonAsync<OrderStatus>();
 
-        Assert.That(orderStatus, Is.Not.Null);
-        Assert.That(orderStatus!.OrderId, Is.EqualTo(orderId));
-        Assert.That(orderStatus.Status, Is.EqualTo(nameof(OrderStateMachine.Accepted)));
+        Assert.NotNull(orderStatus);
+        Assert.Equal(orderId, orderStatus.OrderId);
+        Assert.Equal(nameof(OrderStateMachine.Accepted), orderStatus.Status);
     }
 
-    [Test]
+    [Fact]
     public async Task Should_pass_the_test()
     {
         await using var application = new WebApplicationFactory<Program>()
@@ -136,8 +142,8 @@ public class Submitting_an_order
         var consumed = await testHarness.Consumed.Any<OrderSubmitted>();
         var faults = await testHarness.Published.Any<Fault<OrderSubmitted>>();
 
-        Assert.That(published);
-        Assert.That(consumed);
-        Assert.That(faults, Is.False);
+        Assert.True(published);
+        Assert.True(consumed);
+        Assert.False(faults);
     }
 }
